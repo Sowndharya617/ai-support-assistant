@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Communication Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center p-4 min-h-screen">
+    <div class="container mx-auto p-6 bg-white shadow-xl rounded-2xl w-full max-w-7xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">AI-Powered Communication Assistant</h1>
+
+        <!-- Analytics and Stats Section -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-blue-100 p-6 rounded-xl shadow-md flex flex-col items-center">
+                <p class="text-sm text-blue-600 font-semibold mb-1">Total Emails Received</p>
+                <p id="totalEmails" class="text-4xl font-bold text-blue-800">0</p>
+            </div>
+            <div class="bg-yellow-100 p-6 rounded-xl shadow-md flex flex-col items-center">
+                <p class="text-sm text-yellow-600 font-semibold mb-1">Emails Pending</p>
+                <p id="pendingEmails" class="text-4xl font-bold text-yellow-800">0</p>
+            </div>
+            <div class="bg-red-100 p-6 rounded-xl shadow-md flex flex-col items-center">
+                <p class="text-sm text-red-600 font-semibold mb-1">Urgent Emails</p>
+                <p id="urgentEmails" class="text-4xl font-bold text-red-800">0</p>
+            </div>
+            <div class="bg-green-100 p-6 rounded-xl shadow-md flex flex-col items-center">
+                <p class="text-sm text-green-600 font-semibold mb-1">Emails Resolved</p>
+                <p id="resolvedEmails" class="text-4xl font-bold text-green-800">0</p>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Layout -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Email List Sidebar -->
+            <div class="lg:w-1/3 bg-gray-50 rounded-xl shadow-md p-4 no-scrollbar overflow-y-auto max-h-[600px]">
+                <h2 class="text-xl font-bold text-gray-700 mb-4">Filtered Support Emails</h2>
+                <div id="loadingIndicator" class="text-center text-gray-500 my-8">
+                    <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    <p class="mt-2">Loading emails...</p>
+                </div>
+                <div id="emailList" class="space-y-4 hidden">
+                    <!-- Email cards will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Email Detail & Response Pane -->
+            <div class="lg:w-2/3 bg-gray-50 rounded-xl shadow-md p-6">
+                <div id="emailDetailPane" class="hidden">
+                    <h2 class="text-xl font-bold text-gray-700 mb-4">Email Details & Response</h2>
+                    <div id="emailContent" class="bg-white p-4 rounded-xl shadow-inner mb-4">
+                        <!-- Email content will be loaded here -->
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="flex-1 bg-white p-4 rounded-xl shadow-inner">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Extracted Information</h3>
+                            <div id="extractedInfo" class="text-sm text-gray-600 space-y-2">
+                                <!-- Extracted info will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="flex-1 bg-white p-4 rounded-xl shadow-inner">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">AI-Generated Response</h3>
+                            <p id="aiResponse" class="text-sm text-gray-600"></p>
+                            <div class="mt-4 flex gap-2">
+                                <button onclick="copyToClipboard()"
+                                    class="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                                    Copy Response
+                                </button>
+                                <button onclick="sendMessage()"
+                                    class="px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-600 transition-colors duration-200">
+                                    Send Email (Mock)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="noEmailSelected"
+                    class="flex flex-col items-center justify-center h-full text-center text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                            d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5.09L20 8v10z" />
+                    </svg>
+                    <p class="text-lg">Select an email from the left to view details.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Alerts -->
+    <div id="customModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle"></h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modalMessage"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="modalCloseBtn"
+                        class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+        let emails = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchEmails();
+        });
+
+        async function fetchEmails() {
+            try {
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const emailList = document.getElementById('emailList');
+                loadingIndicator.classList.remove('hidden');
+                emailList.classList.add('hidden');
+
+                const response = await fetch(`${API_BASE_URL}/api/emails`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch emails from the API.');
+                }
+                const data = await response.json();
+                emails = data.emails; // Access the 'emails' key
+
+                loadingIndicator.classList.add('hidden');
+                emailList.classList.remove('hidden');
+
+                renderEmails();
+                updateStats(data.stats); // Pass the 'stats' key to the update function
+            } catch (error) {
+                console.error('Error fetching emails:', error);
+                showModal('Error', 'Failed to load emails. Please ensure the backend server is running and try again.');
+            }
+        }
+
+        // --- UI Rendering Functions ---
+        function renderEmails() {
+            const emailList = document.getElementById('emailList');
+            emailList.innerHTML = '';
+            emails.forEach((email, index) => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-lg shadow-md cursor-pointer transition-transform duration-200 transform hover:scale-[1.02] ${email.resolved ? 'bg-gray-200' : 'bg-white'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-bold text-gray-800">${email.sender}</p>
+                        <p class="text-xs text-gray-500">${new Date(email.date).toLocaleDateString()}</p>
+                    </div>
+                    <p class="font-semibold text-gray-700 mb-2">${email.subject}</p>
+                    <div class="flex items-center gap-2 text-xs font-medium">
+                        <span class="px-2 py-1 rounded-full text-white ${email.priority === 'Urgent' ? 'bg-red-500' : 'bg-gray-500'}">${email.priority}</span>
+                        <span class="px-2 py-1 rounded-full text-white ${email.sentiment === 'Positive' ? 'bg-green-500' : email.sentiment === 'Negative' ? 'bg-red-500' : 'bg-gray-500'}">${email.sentiment}</span>
+                    </div>
+                `;
+                card.onclick = () => selectEmail(index);
+                emailList.appendChild(card);
+            });
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalEmails').textContent = stats.total_emails;
+            // The emails list does not track pending vs resolved, so pending will always be total emails.
+            // For a complete solution, you would need to track resolved status in the backend.
+            document.getElementById('pendingEmails').textContent = stats.total_emails;
+            document.getElementById('urgentEmails').textContent = stats.urgent_emails;
+            document.getElementById('resolvedEmails').textContent = 0; // This will remain 0 unless you implement persistence.
+        }
+
+        function selectEmail(index) {
+            const email = emails[index];
+            const detailPane = document.getElementById('emailDetailPane');
+            const noEmailSelected = document.getElementById('noEmailSelected');
+
+            detailPane.classList.remove('hidden');
+            noEmailSelected.classList.add('hidden');
+
+            // Populate email content
+            document.getElementById('emailContent').innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <p class="font-semibold text-lg">${email.subject}</p>
+                    <p class="text-sm text-gray-500">${new Date(email.date).toLocaleString()}</p>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">From: ${email.sender}</p>
+                <div class="text-gray-800">${email.body}</div>
+            `;
+
+            // Populate extracted information
+            const extractedInfo = document.getElementById('extractedInfo');
+            extractedInfo.innerHTML = `
+                <p><strong>Contact Details:</strong> ${email.extracted_info.contact_details}</p>
+                <p><strong>Customer Request:</strong> ${email.extracted_info.customer_request}</p>
+                <p><strong>Sentiment Indicator:</strong> ${email.extracted_info.sentiment_indicator}</p>
+            `;
+
+            // Populate AI response
+            document.getElementById('aiResponse').textContent = email.auto_response;
+
+            // Add a temporary state to the email object for UI purposes
+            emails.forEach(e => e.selected = false);
+            email.selected = true;
+        }
+
+        function showModal(title, message) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('modalCloseBtn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
+
+        async function sendMessage() {
+            const selectedEmail = emails.find(e => e.selected);
+            if (!selectedEmail) {
+                showModal("Error", "Please select an email to send a response.");
+                return;
+            }
+
+            // In a real application, you would send the email here.
+            // For this demo, we just show a confirmation.
+            showModal("Success", `Mock email sent to ${selectedEmail.sender}!`);
+
+            // You can mark the email as resolved for the UI if you want,
+            // but this won't persist after a page refresh.
+            selectedEmail.resolved = true;
+            renderEmails();
+        }
+
+        function copyToClipboard() {
+            const responseText = document.getElementById('aiResponse').textContent;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = responseText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showModal("Copied!", "AI-generated response has been copied to your clipboard.");
+        }
+    </script>
+</body>
+
+</html>
