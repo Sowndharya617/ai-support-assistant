@@ -32,6 +32,11 @@ It helps in **retrieving emails, categorizing them, and generating AI-powered au
 
 [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
+5.Demo Implementation Link : 
+#### 🎉 Dashboard 
+![Urgent Emails](https://github.com/Sowndharya617/ai-support-assistant/blob/main/images%20(2).png)
+
+
 🏆 Hackathon Submission
 Project Name: AI Communication Assistant
 
